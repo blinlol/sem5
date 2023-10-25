@@ -11,7 +11,7 @@ from collections import OrderedDict
 events_number = 1#10 ** 3
 persons_number = 1#10 ** 3
 
-db_conn_env = "dbname=lab_3 user=postgres password=postgres"
+db_conn_env = "dbname=lab_3 user=fedor"
 
 fkr = faker.Faker()
 
@@ -105,7 +105,11 @@ def gen_participation(min_max_participants: Tuple[int, int] =(10, 400)):
             persons = cur.execute(f"select id, date_added from persons order by date_added asc").fetchall()
             events = cur.execute(f"select id, start_date, date_added from events order by start_date asc").fetchall()
     
-    f = open('./3/fakes/participation', mode='w')
+    participation_f = open('./3/fakes/participation', mode='w')
+    event_participants_f = open('./3/fakes/event_participants', mode='w')
+
+    pme_dict = {}
+
     p_indx_last_added = 0
     for e_id, e_start, e_added in events:
         while e_start >= persons[p_indx_last_added][1]:
@@ -115,14 +119,27 @@ def gen_participation(min_max_participants: Tuple[int, int] =(10, 400)):
                             elements=persons[:p_indx_last_added],
                             length=min(fkr.random_int(min_max_participants[0], min_max_participants[1]), p_indx_last_added),
                             unique=True)
+        
+        ep_query = str(e_id) + "|{" + ", ".join(map(lambda p: str(p[0]), participants)) + "}\n"
+        event_participants_f.write(ep_query)
+
         for p_id, p_added in participants:
             role = fkr.random_element(elements=OrderedDict([('1', 0.1), ('2', 0.9)]))
             reg_date = fkr.date_time_between(start_date=max(e_added, p_added),
                                              end_date=e_start)
             mark = fkr.random_int(1, 10)
-            f.write(f"{p_id}|{e_id}|{{{role}}}|{reg_date}|{mark}\n")
+            participation_f.write(f"{p_id}|{e_id}|{{{role}}}|{reg_date}|{mark}\n")
 
-    f.close()
+            pme_dict[p_id] = pme_dict.get(p_id, []) + [str(e_id)]
+
+    persons_my_events_f = open('./3/fakes/persons_my_events', mode='w')
+    for p_id, pme in pme_dict.items():
+        q = str(p_id) + '|{' + ', '.join(pme) + '}\n'
+        persons_my_events_f.write(q)
+
+    participation_f.close()
+    event_participants_f.close()
+    persons_my_events_f.close()
 
 
 def truncate_persons_events():
@@ -145,7 +162,7 @@ first copy data to db with command
 # gen_descriptions()
 # gen_event_themes()
 
-# gen_participation((10, 800))
+gen_participation((10, 100))
 
 """
 commands to copy remaining data
