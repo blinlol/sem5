@@ -8,10 +8,10 @@ from collections import OrderedDict
 
 
 
-events_number = 10 ** 3
-persons_number = 10 ** 3
+events_number = 1#10 ** 3
+persons_number = 1#10 ** 3
 
-
+db_conn_env = "dbname=lab_3 user=postgres password=postgres"
 
 fkr = faker.Faker()
 
@@ -93,14 +93,14 @@ def check_themes_uniquines():
 
 
 def get_ids(table_name: str) -> List[int]:
-    with psycopg.connect("dbname=lab_3 user=fedor") as conn:
+    with psycopg.connect(db_conn_env) as conn:
         with conn.cursor() as cur:
             cur.execute(f"select id from {table_name}")
             return [e[0] for e in cur]
 
 
 def gen_participation(min_max_participants: Tuple[int, int] =(10, 400)):
-    with psycopg.connect("dbname=lab_3 user=fedor") as conn:
+    with psycopg.connect(db_conn_env) as conn:
         with conn.cursor() as cur:
             persons = cur.execute(f"select id, date_added from persons order by date_added asc").fetchall()
             events = cur.execute(f"select id, start_date, date_added from events order by start_date asc").fetchall()
@@ -123,6 +123,12 @@ def gen_participation(min_max_participants: Tuple[int, int] =(10, 400)):
             f.write(f"{p_id}|{e_id}|{{{role}}}|{reg_date}|{mark}\n")
 
     f.close()
+
+
+def truncate_persons_events():
+    with psycopg.connect(db_conn_env) as conn:
+        with conn.cursor() as cur:
+            cur.execute("truncate table events, persons cascade")
 
 
 # gen_persons(persons_number)
