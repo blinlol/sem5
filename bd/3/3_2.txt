@@ -1,0 +1,21 @@
+\dt
+                 Список отношений
+ Схема  |        Имя         |   Тип   | Владелец
+--------+--------------------+---------+----------
+ public | event_description  | таблица | postgres
+ public | event_participants | таблица | postgres
+ public | event_themes       | таблица | postgres
+ public | events             | таблица | postgres
+ public | participation      | таблица | postgres
+ public | person_themes      | таблица | postgres
+ public | persons            | таблица | postgres
+ public | roles              | таблица | postgres
+ public | themes             | таблица | postgres
+(9 строк)
+
+
+- select, insert, update for person_themes
+- select update for persons(personal_data, date_added)
+                    participation(mark)
+- select for event*, roles, themes, participation, persons.my_events
+

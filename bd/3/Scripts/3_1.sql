@@ -193,5 +193,3 @@ truncate persons, events cascade;
 
 
 
-
-

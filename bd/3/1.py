@@ -8,10 +8,10 @@ from collections import OrderedDict
 
 
 
-events_number = 1#10 ** 3
-persons_number = 1#10 ** 3
+events_number = 200000
+persons_number = 200000
 
-db_conn_env = "dbname=lab_3 user=fedor"
+db_conn_env = "dbname=lab_3 user=postgres password=postgres"
 
 fkr = faker.Faker()
 
@@ -105,16 +105,17 @@ def gen_participation(min_max_participants: Tuple[int, int] =(10, 400)):
             persons = cur.execute(f"select id, date_added from persons order by date_added asc").fetchall()
             events = cur.execute(f"select id, start_date, date_added from events order by start_date asc").fetchall()
     
-    participation_f = open('./3/fakes/participation', mode='w')
+    participation_f = open('./3/fakes/participation_0', mode='w')
     event_participants_f = open('./3/fakes/event_participants', mode='w')
 
     pme_dict = {}
 
+    row_cnt = 0
     p_indx_last_added = 0
     for e_id, e_start, e_added in events:
-        while e_start >= persons[p_indx_last_added][1]:
+        while p_indx_last_added < len(persons) and e_start >= persons[p_indx_last_added][1]:
             p_indx_last_added += 1
-        
+
         participants = fkr.random_elements(
                             elements=persons[:p_indx_last_added],
                             length=min(fkr.random_int(min_max_participants[0], min_max_participants[1]), p_indx_last_added),
@@ -131,6 +132,12 @@ def gen_participation(min_max_participants: Tuple[int, int] =(10, 400)):
             participation_f.write(f"{p_id}|{e_id}|{{{role}}}|{reg_date}|{mark}\n")
 
             pme_dict[p_id] = pme_dict.get(p_id, []) + [str(e_id)]
+        
+            row_cnt += 1
+            if row_cnt % 2000000 == 0:
+                print(row_cnt)
+                participation_f.close()
+                participation_f = open(f'./3/fakes/participation_{row_cnt // 2000000}', mode='w')
 
     persons_my_events_f = open('./3/fakes/persons_my_events', mode='w')
     for p_id, pme in pme_dict.items():
@@ -148,8 +155,8 @@ def truncate_persons_events():
             cur.execute("truncate table events, persons cascade")
 
 
-# gen_persons(persons_number)
-# gen_events(events_number)
+#gen_persons(persons_number)
+#gen_events(events_number)
 
 """
 first copy data to db with command
@@ -158,11 +165,11 @@ first copy data to db with command
 """
 
 
-# gen_person_themes()
-# gen_descriptions()
-# gen_event_themes()
+#gen_person_themes()
+#gen_descriptions()
+#gen_event_themes()
 
-gen_participation((10, 100))
+gen_participation((10, 600))
 
 """
 commands to copy remaining data
